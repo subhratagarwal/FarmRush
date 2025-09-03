@@ -1,52 +1,47 @@
 const express = require("express");
 const router = express.Router();
-const { Product, Order, User, Cart, Wishlist, Review, Farmer, FarmerRating, Coupon } = require('../config/db');
+const auth = require("../middleware/auth");
+const { Wishlist, Product } = require("../config/db");
 
-
-// Get wishlist for a user
-router.get("/:userId", async (req, res) => {
+// GET /api/wishlist
+router.get("/", auth, async (req, res) => {
   try {
     const wishlist = await Wishlist.findAll({
-      where: { userId: req.params.userId },
-      include: [Product],
+      where: { userId: req.user.id },
+      include: [{ model: Product, as: "product", attributes: ["id", "name", "price", "image", "stock"] }],
     });
     res.json(wishlist);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Failed to fetch wishlist:", err);
+    res.status(500).json({ error: "Failed to fetch wishlist" });
   }
 });
 
-// Add to wishlist
-router.post("/", async (req, res) => {
-  const { userId, productId } = req.body;
+// POST /api/wishlist/add
+router.post("/add", auth, async (req, res) => {
   try {
-    const existing = await Wishlist.findOne({ where: { userId, productId } });
-    if (existing) {
-      return res.status(400).json({ message: "Already in wishlist" });
-    }
-
-    const wishlistItem = await Wishlist.create({ userId, productId });
-    res.json(wishlistItem);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Remove from wishlist
-router.delete("/", async (req, res) => {
-  const { userId, productId } = req.body;
-  try {
-    const deleted = await Wishlist.destroy({
-      where: { userId, productId },
+    const { productId } = req.body;
+    const [item, created] = await Wishlist.findOrCreate({
+      where: { userId: req.user.id, productId },
     });
-
-    if (deleted) {
-      res.json({ message: "Removed from wishlist" });
-    } else {
-      res.status(404).json({ message: "Item not found" });
-    }
+    if (!created) return res.status(400).json({ message: "Product already in wishlist" });
+    res.json({ message: "Added to wishlist", item });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Failed to add to wishlist:", err);
+    res.status(500).json({ error: "Failed to add to wishlist" });
+  }
+});
+
+// DELETE /api/wishlist/remove/:productId
+router.delete("/remove/:productId", auth, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const deleted = await Wishlist.destroy({ where: { userId: req.user.id, productId } });
+    if (!deleted) return res.status(404).json({ error: "Item not found in wishlist" });
+    res.json({ message: "Removed from wishlist" });
+  } catch (err) {
+    console.error("Failed to remove from wishlist:", err);
+    res.status(500).json({ error: "Failed to remove from wishlist" });
   }
 });
 

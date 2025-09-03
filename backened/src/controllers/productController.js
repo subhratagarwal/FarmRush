@@ -1,5 +1,6 @@
 
-const Product = require('../models/product');
+const { Product } = require('../config/db');
+
 
 // ✅ Add product by farmer
 exports.addProduct = async (req, res) => {

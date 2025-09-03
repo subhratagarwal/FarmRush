@@ -1,5 +1,6 @@
 // src/controllers/userController.js
-const User = require('../models/users'); // model file
+const { User } = require('../config/db');
+
 const bcrypt = require('bcrypt'); // for password hashing
 
 // ✅ Create new user (Register)

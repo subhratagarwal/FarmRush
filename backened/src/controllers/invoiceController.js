@@ -1,5 +1,6 @@
 const PDFDocument = require("pdfkit");
-const Order = require("../models/Order"); // adjust path to your model
+const { Order, OrderItem, Product, User } = require('../config/db');
+ // adjust path to your model
 
 exports.generateInvoice = async (req, res) => {
   try {

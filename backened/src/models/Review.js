@@ -1,21 +1,20 @@
-// models/Review.js
-
+// src/models/Review.js
 module.exports = (sequelize, DataTypes) => {
-  const Review = sequelize.define("Review", {
-    rating: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      validate: { min: 1, max: 5 }
+  const Review = sequelize.define(
+    "Review",
+    {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
+      comment: { type: DataTypes.TEXT, allowNull: true },
+      userId: { type: DataTypes.INTEGER, allowNull: false },
+      productId: { type: DataTypes.INTEGER, allowNull: false },
     },
-    comment: {
-      type: DataTypes.STRING,
-      allowNull: true
-    }
-  });
+    { tableName: "reviews" }
+  );
 
   Review.associate = (models) => {
-    Review.belongsTo(models.User, { foreignKey: "userId" });
-    Review.belongsTo(models.Product, { foreignKey: "productId" });
+    Review.belongsTo(models.User, { as: "user", foreignKey: "userId", onDelete: "CASCADE" });
+    Review.belongsTo(models.Product, { as: "product", foreignKey: "productId", onDelete: "CASCADE" });
   };
 
   return Review;

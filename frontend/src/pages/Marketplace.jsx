@@ -151,89 +151,85 @@ export default function Marketplace() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="border rounded-xl p-4 flex flex-col gap-3 shadow-md bg-white cursor-pointer transition hover:shadow-lg"
-              onClick={() => openProductModal(product)}
-            >
-              <img
-                src={
-                  product.image?.startsWith("http")
-                    ? product.image
-                    : `http://localhost:5000/uploads/${product.image}`
-                }
-                alt={product.name}
-                className="w-full h-56 object-cover rounded-xl border"
-              />
-
-              <div className="flex flex-col gap-1">
-                <h3 className="text-xl font-bold text-gray-800">{product.name}</h3>
-
-                {ratings[product.id] && (
-                  <p className="text-sm text-yellow-600">
-                    ⭐ {ratings[product.id].averageRating} (
-                    {ratings[product.id].totalReviews} reviews)
-                  </p>
-                )}
-
-                <p className="text-green-700 font-semibold text-lg">
-                  ₹{product.price}/kg
-                </p>
-
-                {product.farmer && (
-                  <div className="text-sm text-gray-600 space-y-1 mt-1">
-                    <p>👨‍🌾 {product.farmer.name}</p>
-                    <p>📍 {product.farmer.address}</p>
-                    <p>📞 {product.farmer.phone}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 mt-3">
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Qty"
-                  value={quantities[product.id] || ""}
-                  onChange={(e) => handleQtyChange(product.id, e.target.value)}
-                  className="border rounded p-1 w-20"
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="border rounded-xl p-4 flex flex-col gap-3 shadow-md bg-white cursor-pointer transition hover:shadow-lg"
+                onClick={() => openProductModal(product)}
+              >
+                <img
+                  src={
+                    product.image?.startsWith("http")
+                      ? product.image
+                      : `http://localhost:5000/uploads/${product.image}`
+                  }
+                  alt={product.name}
+                  className="w-full h-56 object-cover rounded-xl border"
                 />
-                <button
-                  className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addToCart(product);
-                  }}
-                >
-                  Add
-                </button>
-                <button
-                  className="text-red-500 text-xl"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleAddToWishlist(product.id);
-                  }}
-                >
-                  ❤️
-                </button>
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-xl font-bold text-gray-800">{product.name}</h3>
+                  {ratings[product.id] && (
+                    <p className="text-sm text-yellow-600">
+                      ⭐ {ratings[product.id].averageRating} (
+                      {ratings[product.id].totalReviews} reviews)
+                    </p>
+                  )}
+                  <p className="text-green-700 font-semibold text-lg">
+                    ₹{product.price}/kg
+                  </p>
+                  {product.farmer && (
+                    <div className="text-sm text-gray-600 space-y-1 mt-1">
+                      <p>👨‍🌾 {product.farmer.name}</p>
+                      <p>📍 {product.farmer.address}</p>
+                      <p>📞 {product.farmer.phone}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Qty"
+                    value={quantities[product.id] || ""}
+                    onChange={(e) => handleQtyChange(product.id, e.target.value)}
+                    className="border rounded p-1 w-20"
+                  />
+                  <button
+                    className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(product);
+                    }}
+                  >
+                    Add
+                  </button>
+                  <button
+                    className="text-red-500 text-xl"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToWishlist(product.id);
+                    }}
+                  >
+                    ❤️
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>  {/* <-- Ensure this closes the grid container */}
+
+          {/* Checkout Button */}
+          {cart.length > 0 && (
+            <div className="fixed bottom-6 right-6">
+              <button
+                onClick={checkout}
+                className="bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-800"
+              >
+                🧾 Proceed to Bill Summary ({cart.length})
+              </button>
             </div>
-          ))}
+          )}
 
-
-      {/* Checkout Button */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-6 right-6">
-          <button
-            onClick={checkout}
-            className="bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-800"
-          >
-            🧾 Proceed to Bill Summary ({cart.length})
-          </button>
-        </div>
-      )}
 
       {/* Product Details Modal */}
       {isModalOpen && selectedProduct && (

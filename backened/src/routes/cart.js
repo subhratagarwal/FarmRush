@@ -1,12 +1,13 @@
-// src/routes/cart.js
 const express = require("express");
 const router = express.Router();
-const { Product, Order, User, Cart, Wishlist, Review, Farmer, FarmerRating, Coupon } = require('../config/db');
-
+const { Cart, Product } = require("../config/db");
+const auth = require("../middleware/auth");
 
 // Add to cart
-router.post("/", async (req, res) => {
-  const { customerId, productId, quantity } = req.body;
+// Change from router.post("/") to:
+router.post("/add", auth, async (req, res) => {
+  const customerId = req.user.id;
+  const { productId, quantity } = req.body;
 
   try {
     const existing = await Cart.findOne({ where: { customerId, productId } });
@@ -24,11 +25,13 @@ router.post("/", async (req, res) => {
   }
 });
 
+
 // Get cart items for customer
-router.get("/:customerId", async (req, res) => {
+router.get("/", auth, async (req, res) => {
+  const customerId = req.user.id;
   try {
     const items = await Cart.findAll({
-      where: { customerId: req.params.customerId },
+      where: { customerId },
       include: [{ model: Product, attributes: ["name", "image", "price"] }],
     });
     res.json(items);
@@ -38,9 +41,13 @@ router.get("/:customerId", async (req, res) => {
 });
 
 // Remove from cart
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
+  const customerId = req.user.id;
   try {
-    await Cart.destroy({ where: { id: req.params.id } });
+    const deleted = await Cart.destroy({
+      where: { id: req.params.id, customerId },
+    });
+    if (!deleted) return res.status(404).json({ error: "Cart item not found" });
     res.sendStatus(204);
   } catch (err) {
     res.status(500).json({ error: "Failed to delete cart item" });

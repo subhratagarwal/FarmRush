@@ -1,32 +1,36 @@
 const express = require("express");
 const router = express.Router();
-const { Product, Order, User, Cart, Wishlist, Review, Farmer, FarmerRating, Coupon } = require('../config/db');
+const auth = require("../middleware/auth");
+const { Order, OrderItem } = require("../config/db");
 
-
-// GET /api/livetracking/:orderId
-router.get("/:orderId", async (req, res) => {
-  const { orderId } = req.params;
-
+router.get("/:orderId", auth, async (req, res) => {
   try {
-    const order = await Order.findByPk(orderId);
+    const order = await Order.findByPk(req.params.orderId);
+    if (!order) return res.status(404).json({ error: "Order not found" });
 
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+    // Restrict access to customer, admin, or linked farmer
+    let allowed = req.user.role === "admin" || req.user.id === order.customerId;
+    if (!allowed && req.user.role === "farmer") {
+      const count = await OrderItem.count({
+        where: { orderId: order.id, farmerId: req.user.id },
+      });
+      allowed = count > 0;
     }
+    if (!allowed) return res.status(403).json({ error: "Forbidden" });
 
-    // Mocked status and ETA logic (replace with real-time tracking later)
-    const statuses = ["Order Placed", "Preparing", "On the Way", "Delivered"];
-    const index = Math.min(Math.floor(Math.random() * statuses.length), statuses.length - 1);
-    const eta = `${10 + Math.floor(Math.random() * 15)} mins`;
+    // Simple ETA calculation
+    const createdAt = new Date(order.createdAt);
+    const estimatedDeliveryTime = new Date(createdAt.getTime() + 30 * 60000); // +30 mins
 
     res.json({
       orderId: order.id,
-      status: statuses[index],
-      eta: eta,
-      updatedAt: order.updatedAt,
+      status: order.status,
+      deliveryStatus: order.deliveryStatus,
+      deliveryTime: order.deliveryTime || estimatedDeliveryTime,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Live tracking failed:", err);
+    res.status(500).json({ error: "Failed to fetch live tracking info" });
   }
 });
 
